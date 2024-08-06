@@ -1,0 +1,52 @@
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local bringPlayersActive = false
+
+
+local function createToggleButton()
+    local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+    local toggleButton = Instance.new("TextButton", screenGui)
+    
+    toggleButton.Size = UDim2.new(0, 100, 0, 50)
+    toggleButton.Position = UDim2.new(1, -110, 0, 10)
+    toggleButton.Text = "Toggle Bring Players"
+    
+    toggleButton.MouseButton1Click:Connect(function()
+        bringPlayersActive = not bringPlayersActive
+        toggleButton.Text = bringPlayersActive and "Stop Bring Players" or "Start Bring Players"
+    end)
+end
+
+
+local function bringPlayersAroundUser()
+    local radius = 15
+    local numPlayers = #Players:GetPlayers() - 1
+    local angleStep = math.rad(360 / numPlayers)
+    
+    for i, targetPlayer in ipairs(Players:GetPlayers()) do
+        if targetPlayer ~= player and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local angle = angleStep * (i - 1)
+            local xOffset = radius * math.cos(angle)
+            local zOffset = radius * math.sin(angle)
+            
+            local newPosition = character.HumanoidRootPart.Position + Vector3.new(xOffset, 0, zOffset)
+            targetPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(newPosition)
+        end
+    end
+end
+
+-- Loop para manter os jogadores ao redor do usuário
+RunService.RenderStepped:Connect(function()
+    if bringPlayersActive then
+        bringPlayersAroundUser()
+    end
+end)
+
+
+createToggleButton()
